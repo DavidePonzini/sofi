@@ -14,7 +14,9 @@ if __name__ == '__main__':
         values = [float(line.strip()) for line in f if line.strip()]
 
     average = statistics.mean(values)
-    sigma = statistics.pstdev(values)
+    sigma = statistics.stdev(values)
+    error = sigma / (len(values) ** 0.5)
 
     dav_tools.messages.info(f'Average: {average}')
     dav_tools.messages.info(f'Sigma:   {sigma}')
+    dav_tools.messages.info(f'Error:   {error}')
