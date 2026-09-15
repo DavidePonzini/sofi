@@ -1,5 +1,8 @@
+from dataclasses import dataclass
 import re
 from dav_tools import argument_parser, messages
+import random
+
 
 def is_float(value: str) -> bool:
     try:
@@ -8,18 +11,35 @@ def is_float(value: str) -> bool:
     except ValueError:
         return False
 
+def random_messages() -> str:
+    return random.choice([
+        '<3',
+        '(^_^)',
+        '(*^_^*)',
+        '(o_o)',
+        '(>_<)',
+        'Ti amo tanto',
+        'Sei bellissima',
+        'Gilaffina adolabile',
+        'Ti auguro una giolnata melavigliosa almeno quanto lo sei tu',
+    ])
+
+@dataclass(frozen=True)
+class Header:
+    method: str
+    angle: str
+
+def output_filename(base: str, Header: Header, ext: str) -> str:
+    return f'{base}_{Header.method}_{Header.angle}.{ext}'
+
 if __name__ == '__main__':
     argument_parser.add_argument('file', help='Input filename')
     argument_parser.add_argument('--skip', type=int, default=4, help='Number of lines to skip at the start of the file')
-    argument_parser.add_argument('--angle-column', type=int, default=1, help='Column number for angle values (starting from zero)')
-    argument_parser.add_argument('--dpol-angle-column', type=int, default=2, help='Column number for dpol angle values (starting from zero)')
 
     filename = argument_parser.args.file
     filename_name = '.'.join(filename.split('.')[:-1])
     filename_ext = filename.split('.')[-1]
     skip_lines = argument_parser.args.skip
-    angle_column = argument_parser.args.angle_column
-    dpol_angle_column = argument_parser.args.dpol_angle_column
 
     with open(filename, 'r') as f:
         lines = f.readlines()
@@ -30,8 +50,7 @@ if __name__ == '__main__':
     # Skip the first lines
     lines = lines[skip_lines:]
 
-    results = {}
-    results_dpol = {}
+    results: dict[Header, list[str]] = {}
 
     for line in lines:
         columns = line.split(' ')
@@ -39,41 +58,17 @@ if __name__ == '__main__':
         if len(columns) < 1:
             continue
 
-        col1 = columns[0]
+        method = columns[0]
+        angle = columns[2]
 
-        if is_float(col1):
-            if len(columns) < angle_column:
-                messages.error(f'Line has insufficient columns: {line}')
-            
-            angle = columns[angle_column]
+        header = Header(method=method, angle=angle)
 
-            if angle not in results:
-                results[angle] = []
+        results.setdefault(header, []).append(line)
 
-            results[angle].append(line)
-        elif col1.isalpha():
-            if len(columns) < dpol_angle_column:
-                messages.error(f'Line has insufficient columns: {line}')
-
-            dpol_angle = columns[dpol_angle_column]
-
-            if dpol_angle not in results_dpol:
-                results_dpol[dpol_angle] = []
-
-            results_dpol[dpol_angle].append(line)
-        else:
-            messages.error(f'Unexpected line format: {columns}')
-
-    for key, value in results.items():
-        with open(f'{filename_name}_{key}.{filename_ext}', 'w') as out_file:
-            for line in value:
+    for header, lines in results.items():
+        with open(output_filename(filename_name, header, filename_ext), 'w') as out_file:
+            for line in lines:
                 out_file.write(f'{line}\n')
-            messages.info(f'Wrote {len(value)} lines to {filename_name}_{key}.{filename_ext}')
+            messages.info(f'Wrote {len(lines)} lines to {output_filename(filename_name, header, filename_ext)}')
 
-    for key, value in results_dpol.items():
-        with open(f'{filename_name}_dpol_{key}.{filename_ext}', 'w') as out_file:
-            for line in value:
-                out_file.write(f'{line}\n')
-            messages.info(f'Wrote {len(value)} lines to {filename_name}_dpol_{key}.{filename_ext}')
-
-    messages.success('Processing complete <3')
+    messages.success(f'Processing complete! {random_messages()}')
