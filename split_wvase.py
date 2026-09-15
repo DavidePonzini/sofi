@@ -35,6 +35,7 @@ def output_filename(base: str, Header: Header, ext: str) -> str:
 if __name__ == '__main__':
     argument_parser.add_argument('file', help='Input filename')
     argument_parser.add_argument('--skip', type=int, default=4, help='Number of lines to skip at the start of the file')
+    argument_parser.add_argument('--all', action='store_true', help='Output all measurement types, instead of just "e"')
 
     filename = argument_parser.args.file
     filename_name = '.'.join(filename.split('.')[:-1])
@@ -56,6 +57,8 @@ if __name__ == '__main__':
         columns = line.split(' ')
 
         if len(columns) < 1:
+            continue
+        if not argument_parser.args.all and columns[0] != 'e':
             continue
 
         method = columns[0]
