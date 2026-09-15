@@ -58,7 +58,7 @@ if __name__ == '__main__':
 
         if len(columns) < 1:
             continue
-        if not argument_parser.args.all and columns[0] != 'e':
+        if not argument_parser.args.all and columns[0] != 'E':
             continue
 
         method = columns[0]
