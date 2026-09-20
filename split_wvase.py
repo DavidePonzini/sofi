@@ -63,14 +63,20 @@ if __name__ == '__main__':
         if len(columns) < 1:
             continue
 
+
+
         method = columns[method_index]
+        angle_idx_this_line = angle_index
         if is_float(method):
             method = 'E'
+        else:
+            angle_idx_this_line += 1
+            # first column is not a number, so the angle is in the next column
 
         if not argument_parser.args.all and method != 'E':
             continue
 
-        angle = columns[angle_index]
+        angle = columns[angle_idx_this_line]
 
         header = Header(method=method, angle=angle)
 
