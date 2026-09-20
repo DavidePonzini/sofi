@@ -34,12 +34,16 @@ def output_filename(base: str, Header: Header, ext: str) -> str:
 
 if __name__ == '__main__':
     argument_parser.add_argument('file', help='Input filename')
+    argument_parser.add_argument('-a', '--angle', default=2, help='Column index of the angle (0-based)')
+    argument_parser.add_argument('-m', '--method', default=0, help='Column index of the method (0-based). If the column contains a number, method will be set to "E"')
     argument_parser.add_argument('--skip', type=int, default=4, help='Number of lines to skip at the start of the file')
     argument_parser.add_argument('--all', action='store_true', help='Output all measurement types, instead of just "e"')
 
     filename = argument_parser.args.file
     filename_name = '.'.join(filename.split('.')[:-1])
     filename_ext = filename.split('.')[-1]
+    angle_index = int(argument_parser.args.angle)
+    method_index = int(argument_parser.args.method)
     skip_lines = argument_parser.args.skip
 
     with open(filename, 'r') as f:
@@ -58,11 +62,15 @@ if __name__ == '__main__':
 
         if len(columns) < 1:
             continue
-        if not argument_parser.args.all and columns[0] != 'E':
+
+        method = columns[method_index]
+        if is_float(method):
+            method = 'E'
+
+        if not argument_parser.args.all and method != 'E':
             continue
 
-        method = columns[0]
-        angle = columns[2]
+        angle = columns[angle_index]
 
         header = Header(method=method, angle=angle)
 
